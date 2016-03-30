@@ -1,10 +1,11 @@
 #include <iostream>
 
-int EnterDenomination(int);
 int* EnterArray(int*, int);
 void DisplayArray(int*, int);
-int MinposMaxnegElements(int*, int);
+int FindMaxNeg(int*, int);
+int FindMinPos(int*, int);
 int EvenCount(int);
+int* RandArray(int);
 void WorkProcessWithArray(int*, int);
 
 using namespace std;
@@ -13,10 +14,17 @@ int main()
 {
 	while (true)
 	{
-		const int N = 100;
-		int n = EnterDenomination(N);
+		int n;
+		while (true)
+		{
+			cout << "Enter the number of elements in the array" << endl;
+			cin >> n;
+			if (n > 0) break;
+			cout << "Error! Please, enter the other value" << endl;
+
+		}
+		//int* a = RandArray(n);
 		int* a = new int[n];
-		int k = 0;
 		EnterArray(a, n);
 		system("cls");
 		cout << "Source array " << endl;
@@ -27,26 +35,13 @@ int main()
 		system("cls");
 
 		char yes;
-		cout << "If you would like to continue, please, press y/Y: " << endl;
+		cout << "If you would like to continue, please, press y or Y " << endl;
 		cin >> yes;
 		if (yes == 'y' || yes == 'Y')
 			continue;
 		break;
 	}
 	return 0;
-}
-
-int EnterDenomination(int n)
-{
-	int k;
-	while (true)
-	{
-		cout << "Please, enter 0 <= n <=" << endl << "n: ";
-		cin >> k;
-		if (k > 0 && k <= n)
-			return k;
-		cout << "Error! Enter the other value" << endl;
-	}
 }
 
 int* EnterArray(int* a, int n)
@@ -80,26 +75,62 @@ int EvenCount(int number)
 	return evenCounter;
 }
 
-void WorkProcessWithArray(int* a, int n)
+int* RandArray(int n)
 {
-	int maxNeg = *(a + 0), maxNegIndex = 0, minPos = *(a + 0), minPosIndex = 0;
-	for (int i = 0; i < n; i += 2)
+	int* a = new int[n];
+	for (int* p = a; p < a + n; p++)
+		*p = rand() % 532 - 119;
+	return a;
+}
+
+int FindMaxNeg(int* a, int n)
+{
+	for (int i = 1; i < n; i += 2)
 	{
-		if ((*(a + i) > 0) && (*(a + i) < minPos))
+		if (*(a + i) < 0)
 		{
-			minPos = *(a + i);
-			minPosIndex = i;
-		}
-		if ((*(a + i) < 0) && (abs(*(a + i)) < maxNeg))
-		{
-			maxNeg = *(a + i);
-			maxNegIndex = i;
+			int maxNeg = *(a + i), maxNegIndex = i;
+			for (int k = 1; k < n; k += 2)
+			{
+				if ((*(a + k) < 0) && (*(a + k) > maxNeg))
+				{
+					maxNeg = *(a + k);
+					maxNegIndex = k;
+				}
+			}
+			cout << endl << "Max negative element is " << maxNeg << endl;
+			cout << "Max negative at the position " << maxNegIndex + 1 << endl;
+			return maxNegIndex;
 		}
 	}
-	cout << endl << "Min positive element is " << minPos << endl;
-	cout << "Max negative element is " << maxNeg << endl;
+}
 
-	int startIndex = 0, endIndex = 0;
+int FindMinPos(int* a, int n)
+{
+	for (int i = 1; i < n; i += 2)
+	{
+		if (*(a + i) > 0)
+		{
+			int minPos = *(a + i), minPosIndex = i;
+			for (int k = 1; k < n; k += 2)
+			{
+				if ((*(a + k) > 0) && (*(a + k) < minPos))
+				{
+					minPos = *(a + k);
+					minPosIndex = k;
+				}
+			}
+			cout << endl << "Min positive element is " << minPos << endl;
+			cout << "Min positive at the position " << minPosIndex + 1 << endl;
+			return minPosIndex;
+		}
+	}
+}
+void WorkProcessWithArray(int* a, int n)
+{
+	int maxNegIndex = FindMaxNeg(a, n), minPosIndex = FindMinPos(a, n);
+	int startIndex, endIndex;
+	bool flag = 0;
 	if (maxNegIndex > minPosIndex)
 	{
 		startIndex = minPosIndex;
@@ -112,9 +143,11 @@ void WorkProcessWithArray(int* a, int n)
 	}
 	if (endIndex - startIndex <= 2 || endIndex - startIndex == endIndex)
 	{
-		cout << endl << "Only one element is between min positive " << minPos << " and max negative " << maxNeg << ". It`s " << *(a + startIndex + 1) << endl;
-		return;
+		cout << endl << "Only one element is between min positive and max negative. It`s " << *(a + startIndex + 1) << endl;
+		flag = 1;
 	}
+	if (flag)
+		return ; 
 
 
 	for (int iterationCount = endIndex - startIndex - 1; iterationCount != 0; iterationCount--)
@@ -125,16 +158,16 @@ void WorkProcessWithArray(int* a, int n)
 					swap(*(a + i + 1), *(a + i));
 		}
 
-	int i, p = n + startIndex - endIndex;
+	int i, p = n - endIndex + startIndex -1;
 	int* b = new int[p];
-	for (i = 0; i < minPos; i++)
+	for (i = 0; i < startIndex; i++)
 		*(b + i) = *(a + i);
-	for (i = maxNeg + 1; i < n; i++)
-		*(b + (minPos + i - maxNeg - 1)) = *(a + i);
-	for (i = 0; i < n - minPos; i++)
-		*(a + i) = *(a + (i + minPos));
+	for (i = endIndex + 1; i < n; i++)
+		*(b + (startIndex + i - endIndex - 1)) = *(a + i);
+	for (i = 0; i < n - startIndex; i++)
+		*(a + i) = *(a + (i + startIndex + 1));
 
-	cout << endl<< "Array after sort " << endl;
-	DisplayArray(b, p);
-
+	int m = endIndex - startIndex -1 ;
+	cout << endl << "Array after sort " << endl;
+	DisplayArray(a, m);
 }
